@@ -1,6 +1,27 @@
-#include<Python.h>
 
+#include <stdio.h>
+#include<Python.h>
+#include<time.h>
 static PyObject *exmodError;
+
+int nsleep(long miliseconds)
+{
+   struct timespec req, rem;
+
+   if(miliseconds > 999)
+   {   
+        req.tv_sec = (int)(miliseconds / 1000);                            /* Must be Non-Negative */
+        req.tv_nsec = (miliseconds - ((long)req.tv_sec * 1000)) * 1000000; /* Must be in range of 0 to 999999999 */
+   }   
+   else
+   {   
+        req.tv_sec = 0;                         /* Must be Non-Negative */
+        req.tv_nsec = miliseconds * 1000000;    /* Must be in range of 0 to 999999999 */
+   }   
+
+   return nanosleep(&req , &rem);
+}
+
 
 static PyObject* exmod_say_hello(PyObject *self, PyObject *args){
   const char* msg;
@@ -34,9 +55,25 @@ static PyObject* exmod_add(PyObject* self, PyObject *args){
   return Py_BuildValue("d",sts);
 }
 
+
+
+static PyObject* exmod_nano(PyObject* self, PyObject *args){
+  int a;
+  double sts=0;
+  printf("entered the function");
+  if(!PyArg_ParseTuple(args, "i", &a)){
+    return NULL;
+  }
+  printf("This passed int is %i",a);
+  int ret = nsleep(10);
+  printf("sleep result %d\n",ret);
+  return Py_BuildValue("i",sts);
+}
+
 static PyMethodDef exmod_methods[]={
   {"say_hello", exmod_say_hello, METH_VARARGS, "Say hello from C and print message"},
   {"add", exmod_add, METH_VARARGS, "ADD two number in C"},
+  {"ns", exmod_nano, METH_VARARGS, "Pass the time in nanosecond to sleep"},
   {NULL, NULL, 0, NULL}
 };
 
