@@ -1,6 +1,27 @@
 #include<Python.h>
-
+#include <stdio.h>
+#include<time.h>
 static PyObject *exmodError;
+
+int nsleep(long miliseconds)
+{
+   struct timespec req, rem;
+   //printf("This is the passed milliseconds %ld",miliseconds);
+   if(miliseconds > 999)
+   {   
+        req.tv_sec = (int)(miliseconds / 1000);                            /* Must be Non-Negative */
+        req.tv_nsec = (miliseconds - ((long)req.tv_sec * 1000)) * 1000000; /* Must be in range of 0 to 999999999 */
+   }   
+   else
+   {   
+        req.tv_sec = 0;                         /* Must be Non-Negative */
+        req.tv_nsec = miliseconds * 1000000;    /* Must be in range of 0 to 999999999 */
+   }   
+
+   return nanosleep(&req , &rem);
+}
+
+
 
 static PyObject* exmod_say_hello(PyObject *self, PyObject *args){
   const char* msg;
@@ -22,15 +43,17 @@ static PyObject* exmod_say_hello(PyObject *self, PyObject *args){
 }
 
 static PyObject* exmod_add(PyObject* self, PyObject *args){
-  double a,b;
+  double a;
   double sts=0;
-  printf("entered the function");
-  if(!PyArg_ParseTuple(args, "dd", &a, &b)){
+  int k;
+  //printf("entered the function");
+  if(!PyArg_ParseTuple(args, "d", &a)){
     return NULL;
   }
-
-  sts= a+b;
-  printf("This is C world \n Addition of %f + %f = %f",a,b,sts);
+  k=(int)a;
+  int ret = nsleep(k);
+  //printf("sleep result %d\n",ret);
+  //printf("This is C world \n Addition of %d %f",k,a);
   return Py_BuildValue("d",sts);
 }
 
